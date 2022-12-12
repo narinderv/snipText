@@ -1,24 +1,37 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"net/http"
+	"os"
 )
 
+// Common for functions across the package
+type configuration struct {
+	errorLog *log.Logger
+	infoLog  *log.Logger
+}
+
 func main() {
-	mux := http.NewServeMux()
 
-	// HTTP Handlers
-	mux.HandleFunc("/sniptext", showSnip)
-	mux.HandleFunc("/sniptext/create", createSnip)
-	mux.HandleFunc("/", homePageHandler)
+	// Command Line Arguments
+	serverAddr := flag.String("addr", ":8888", "Network address")
+	flag.Parse()
 
-	// Static File server
-	fileServer := http.FileServer(http.Dir("./ui/static/"))
+	config := &configuration{
+		infoLog:  log.New(os.Stdout, "INFO|", log.Ldate|log.Ltime),
+		errorLog: log.New(os.Stderr, "ERROR|", log.Ldate|log.Ltime|log.Lshortfile),
+	}
 
-	mux.Handle("/static/", http.StripPrefix("/static", fileServer))
+	// HTTP Server
+	httpServer := &http.Server{
+		Addr:     *serverAddr,
+		Handler:  config.routes(),
+		ErrorLog: config.errorLog,
+	}
 
-	log.Println("Starting the server on port 8888")
-	err := http.ListenAndServe(":8888", mux)
-	log.Fatal(err)
+	config.infoLog.Printf("Starting the server on port %s", *serverAddr)
+	err := httpServer.ListenAndServe()
+	config.errorLog.Fatal(err)
 }
