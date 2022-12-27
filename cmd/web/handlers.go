@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"html/template"
 	"net/http"
 	"strconv"
+
+	"github.com/narinderv/snipText/pkg/models"
 )
 
 func (config *configuration) homePageHandler(w http.ResponseWriter, r *http.Request) {
@@ -15,24 +16,13 @@ func (config *configuration) homePageHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	templateFiles := []string{
-		"./ui/html/home.page.tmpl",
-		"./ui/html/base.layout.tmpl",
-		"./ui/html/footer.partial.tmpl",
-	}
-
-	tmplate, err := template.ParseFiles(templateFiles...)
-
+	snips, err := config.snips.GetLatest()
 	if err != nil {
 		config.serverError(w, err)
 		return
 	}
 
-	err = tmplate.Execute(w, nil)
-	if err != nil {
-		config.serverError(w, err)
-		return
-	}
+	config.renderTemplate(w, r, "home.page.tmpl", &templateData{AllSnips: snips})
 }
 
 func (config *configuration) showSnip(w http.ResponseWriter, r *http.Request) {
@@ -44,7 +34,16 @@ func (config *configuration) showSnip(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprintf(w, "Show the snippet having id = %d", id)
+	snipInfo, err := config.snips.Get(id)
+	if err == models.ErrNoRecord {
+		config.notFoundError(w)
+		return
+	} else if err != nil {
+		config.serverError(w, err)
+		return
+	}
+
+	config.renderTemplate(w, r, "snip.page.tmpl", &templateData{Snip: snipInfo})
 }
 
 func (config *configuration) createSnip(w http.ResponseWriter, r *http.Request) {
@@ -54,5 +53,31 @@ func (config *configuration) createSnip(w http.ResponseWriter, r *http.Request) 
 		config.clientError(w, http.StatusMethodNotAllowed)
 		return
 	}
-	w.Write([]byte("Create a new Snippet"))
+
+	title := "New Snip"
+	content := "This is a new snip from the code"
+	expiry := "10"
+
+	id, err := config.snips.Insert(title, content, expiry)
+	if err != nil {
+		config.serverError(w, err)
+	}
+
+	// If successful, redirect to the page showing this new snip
+	http.Redirect(w, r, fmt.Sprintf("/sniptext?id=%d", id), http.StatusSeeOther)
+}
+
+func (config *configuration) renderTemplate(w http.ResponseWriter, r *http.Request, templateName string, data *templateData) {
+
+	tmplate, ok := config.templateCache[templateName]
+	if !ok {
+		config.serverError(w, fmt.Errorf("the template %s, does not exist", templateName))
+		return
+	}
+
+	err := tmplate.Execute(w, data)
+	if err != nil {
+		config.serverError(w, err)
+		return
+	}
 }
