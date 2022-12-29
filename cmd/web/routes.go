@@ -4,7 +4,7 @@ import (
 	"net/http"
 )
 
-func (config *configuration) routes() *http.ServeMux {
+func (config *configuration) routes() http.Handler {
 	// HTTP Request Handlers
 	mux := http.NewServeMux()
 
@@ -18,5 +18,5 @@ func (config *configuration) routes() *http.ServeMux {
 
 	mux.Handle("/static/", http.StripPrefix("/static", fileServer))
 
-	return mux
+	return config.recoverFromPanic(config.logRequests(addSecureHeaders(mux)))
 }
