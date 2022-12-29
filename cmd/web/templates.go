@@ -3,13 +3,25 @@ package main
 import (
 	"html/template"
 	"path/filepath"
+	"time"
 
 	"github.com/narinderv/snipText/pkg/models"
 )
 
 type templateData struct {
-	Snip     *models.SnipText
-	AllSnips []*models.SnipText
+	CurrentYear int
+	Snip        *models.SnipText
+	AllSnips    []*models.SnipText
+}
+
+// Function to format the template data
+func formattedDate(inTime time.Time) string {
+	return inTime.Format("02 Jan 2006 15:04:05")
+}
+
+// Map of all the functions for the template
+var functions = template.FuncMap{
+	"formattedDate": formattedDate,
 }
 
 func templateCache(baseDir string) (map[string]*template.Template, error) {
@@ -28,7 +40,8 @@ func templateCache(baseDir string) (map[string]*template.Template, error) {
 		name := filepath.Base(page)
 
 		// Get the page template
-		tmpl, err := template.ParseFiles(page)
+		// First need to register the function Map with the template BEFORE parsing the template files
+		tmpl, err := template.New(name).Funcs(functions).ParseFiles(page)
 		if err != nil {
 			return nil, err
 		}

@@ -66,18 +66,3 @@ func (config *configuration) createSnip(w http.ResponseWriter, r *http.Request) 
 	// If successful, redirect to the page showing this new snip
 	http.Redirect(w, r, fmt.Sprintf("/sniptext?id=%d", id), http.StatusSeeOther)
 }
-
-func (config *configuration) renderTemplate(w http.ResponseWriter, r *http.Request, templateName string, data *templateData) {
-
-	tmplate, ok := config.templateCache[templateName]
-	if !ok {
-		config.serverError(w, fmt.Errorf("the template %s, does not exist", templateName))
-		return
-	}
-
-	err := tmplate.Execute(w, data)
-	if err != nil {
-		config.serverError(w, err)
-		return
-	}
-}

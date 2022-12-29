@@ -16,7 +16,7 @@
         <tr>
         <td>#{{.ID}}</td>
         <td><a href='/sniptext?id={{.ID}}'>{{.Title}}</a></td>
-        <td>{{.Created}}</td>
+        <td>{{formattedDate .Created}}</td>
         </tr>
         {{end}}
     </table>

@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
 	"runtime/debug"
+	"time"
 )
 
 func (config *configuration) serverError(w http.ResponseWriter, err error) {
@@ -23,4 +25,34 @@ func (config *configuration) clientError(w http.ResponseWriter, status int) {
 func (config *configuration) notFoundError(w http.ResponseWriter) {
 
 	config.clientError(w, http.StatusNotFound)
+}
+
+func (config *configuration) addCommonData(data *templateData, r *http.Request) *templateData {
+
+	if data == nil {
+		data = &templateData{}
+	}
+
+	data.CurrentYear = time.Now().Year()
+
+	return data
+}
+
+func (config *configuration) renderTemplate(w http.ResponseWriter, r *http.Request, templateName string, data *templateData) {
+
+	tmplate, ok := config.templateCache[templateName]
+	if !ok {
+		config.serverError(w, fmt.Errorf("the template %s, does not exist", templateName))
+		return
+	}
+
+	buffer := new(bytes.Buffer)
+
+	err := tmplate.Execute(buffer, config.addCommonData(data, r))
+	if err != nil {
+		config.serverError(w, err)
+		return
+	}
+
+	buffer.WriteTo(w)
 }

@@ -11,8 +11,8 @@
 </div>
 <pre><code>{{.Snip.Content}}</code></pre>
 <div class='metadata'>
-<time>Created: {{.Snip.Created}}</time>
-<time>Expires: {{.Snip.Expires}}</time>
+<time>Created: {{formattedDate .Snip.Created}}</time>
+<time>Expires: {{formattedDate .Snip.Expires}}</time>
 </div>
 </div>
 {{end}} 
