@@ -2,17 +2,16 @@ package main
 
 import (
 	"html/template"
-	"net/url"
 	"path/filepath"
 	"time"
 
+	"github.com/narinderv/snipText/pkg/forms"
 	"github.com/narinderv/snipText/pkg/models"
 )
 
 type templateData struct {
 	CurrentYear int
-	FormData    url.Values
-	Errors      map[string]string
+	Form        forms.FormInfo
 	Snip        *models.SnipText
 	AllSnips    []*models.SnipText
 }

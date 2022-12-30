@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
-	"unicode/utf8"
 
+	"github.com/narinderv/snipText/pkg/forms"
 	"github.com/narinderv/snipText/pkg/models"
 )
 
@@ -46,7 +45,9 @@ func (config *configuration) showSnip(w http.ResponseWriter, r *http.Request) {
 
 func (config *configuration) createSnipForm(w http.ResponseWriter, r *http.Request) {
 
-	config.renderTemplate(w, r, "create.page.tmpl", nil)
+	config.renderTemplate(w, r, "create.page.tmpl", &templateData{
+		Form: *forms.NewForm(nil),
+	})
 }
 
 func (config *configuration) createSnip(w http.ResponseWriter, r *http.Request) {
@@ -57,46 +58,23 @@ func (config *configuration) createSnip(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	title := r.PostForm.Get("title")
-	content := r.PostForm.Get("content")
-	expiry := r.PostForm.Get("expires")
+	form := *forms.NewForm(r.PostForm)
 
-	// Validation: Create a map of field to error and validate all the fields
-	errors := make(map[string]string)
+	form.Required("title", "content", "expires")
+	form.MaxLength("title", 100)
+	form.Permittedvalues("expires", "365", "7", "1")
 
-	// Title
-	if strings.TrimSpace(title) == "" {
-		errors["title"] = "Title cannot be empty"
-	} else if utf8.RuneCountInString(title) > 100 {
-		errors["title"] = "Title length cannot be more than 100 characters"
-	}
-
-	// Content
-	if strings.TrimSpace(content) == "" {
-		errors["content"] = "Content cannot be empty"
-	}
-
-	// Expiry
-	if strings.TrimSpace(expiry) == "" {
-		errors["expiry"] = "Please select an expiry duration"
-	} else if expiry != "1" && expiry != "7" && expiry != "365" {
-		errors["expiry"] = "Invalid expiry value"
-	}
-
-	id, err := config.snips.Insert(title, content, expiry)
-	if err != nil {
-		config.serverError(w, err)
-	}
-
-	// Check if any validations have failed
-	if len(errors) > 0 {
-		// Errors have occured. Re-display the form with the error messages and prefilled values
+	if !form.IsValid() {
 		config.renderTemplate(w, r, "create.page.tmpl", &templateData{
-			FormData: r.PostForm,
-			Errors:   errors,
+			Form: form,
 		})
 
 		return
+	}
+
+	id, err := config.snips.Insert(form.Get("title"), form.Get("content"), form.Get("expires"))
+	if err != nil {
+		config.serverError(w, err)
 	}
 
 	// If successful, redirect to the page showing this new snip. Using semantic URLs now
