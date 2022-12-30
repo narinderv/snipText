@@ -1,0 +1,33 @@
+{{template "base" .}}
+{{define "title"}}Create a New Snip{{end}}
+{{define "body"}}
+<form action='/sniptext/create' method='POST'>
+    <div>
+        <label>Title:</label>
+        {{with .Errors.title}}
+            <label class='error'>{{.}}</label>
+        {{end}}
+        <input type='text' name='title' value='{{.FormData.Get "title"}}'>
+    </div>
+    <div>
+        <label>Content:</label>
+        {{with .Errors.content}}
+            <label class='error'>{{.}}</label>
+        {{end}}
+        <textarea name='content'>{{.FormData.Get "content"}}</textarea>
+    </div>
+    <div>
+        <label>Delete in:</label>
+        {{with .Errors.expires}}
+            <label class='error'>{{.}}</label>
+        {{end}}
+        {{$curVal := or (.FormData.Get "expires") "365"}}
+        <input type='radio' name='expires' value='365' {{if (eq $curVal "365")}}checked {{end}}> One Year
+        <input type='radio' name='expires' value='7' {{if (eq $curVal "7")}}checked {{end}}> One Week
+        <input type='radio' name='expires' value='1' {{if (eq $curVal "7")}}checked {{end}}> One Day
+    </div>
+    <div>
+        <input type='submit' value='Publish snippet'>
+    </div>
+</form>
+{{end}}
