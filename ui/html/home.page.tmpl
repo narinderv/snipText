@@ -15,7 +15,7 @@
         {{range .AllSnips}}
         <tr>
         <td>#{{.ID}}</td>
-        <td><a href='/sniptext?id={{.ID}}'>{{.Title}}</a></td>
+        <td><a href='/sniptext/{{.ID}}'>{{.Title}}</a></td>
         <td>{{formattedDate .Created}}</td>
         </tr>
         {{end}}
