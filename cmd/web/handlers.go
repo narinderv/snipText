@@ -77,6 +77,9 @@ func (config *configuration) createSnip(w http.ResponseWriter, r *http.Request) 
 		config.serverError(w, err)
 	}
 
+	// Snip creation confirmation message
+	config.sessionManager.Put(r, "flash", "Snip saved successfully")
+
 	// If successful, redirect to the page showing this new snip. Using semantic URLs now
 	http.Redirect(w, r, fmt.Sprintf("/sniptext/%d", id), http.StatusSeeOther)
 }

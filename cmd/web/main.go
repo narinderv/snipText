@@ -7,17 +7,20 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/golangcollege/sessions"
 	"github.com/narinderv/snipText/pkg/models/mysql"
 )
 
 // Common for functions across the package
 type configuration struct {
-	errorLog      *log.Logger
-	infoLog       *log.Logger
-	snips         *mysql.SnipModel
-	templateCache map[string]*template.Template
+	errorLog       *log.Logger
+	infoLog        *log.Logger
+	sessionManager *sessions.Session
+	snips          *mysql.SnipModel
+	templateCache  map[string]*template.Template
 }
 
 func main() {
@@ -26,6 +29,7 @@ func main() {
 	serverAddr := flag.String("addr", ":8888", "Network address")
 	dbDetails := flag.String("conn", "web:sniptext@/sniptext?parseTime=true",
 		"Database connnection detail (user:password@/database-name)?parseTime=true")
+	sessionKey := flag.String("key", "s6Ndh+pPbnzHbS*+9Pk8qGWhTzbpa@ge", "Session Secret Key (32 bit)")
 
 	flag.Parse()
 
@@ -43,11 +47,17 @@ func main() {
 	if err != nil {
 		errorLog.Fatal(err)
 	}
+
+	// Session Manager
+	sessionManager := sessions.New([]byte(*sessionKey))
+	sessionManager.Lifetime = time.Hour * 12
+
 	config := &configuration{
-		infoLog:       infoLog,
-		errorLog:      errorLog,
-		snips:         &mysql.SnipModel{DB: dbConnection},
-		templateCache: tmplCache,
+		infoLog:        infoLog,
+		errorLog:       errorLog,
+		sessionManager: sessionManager,
+		snips:          &mysql.SnipModel{DB: dbConnection},
+		templateCache:  tmplCache,
 	}
 
 	// HTTP Server

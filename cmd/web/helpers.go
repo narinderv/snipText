@@ -35,6 +35,8 @@ func (config *configuration) addCommonData(data *templateData, r *http.Request) 
 
 	data.CurrentYear = time.Now().Year()
 
+	data.Flash = config.sessionManager.PopString(r, "flash")
+
 	return data
 }
 
