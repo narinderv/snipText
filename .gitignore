@@ -5,6 +5,9 @@
 *.so
 *.dylib
 
+# TLS directory containing certificates
+tls/
+
 # Test binary, built with `go test -c`
 *.test
 
