@@ -6,7 +6,13 @@ import (
 	"net/http"
 	"runtime/debug"
 	"time"
+
+	"github.com/justinas/nosurf"
 )
+
+func (config *configuration) authenticatedUser(r *http.Request) int {
+	return config.sessionManager.GetInt(r, "userID")
+}
 
 func (config *configuration) serverError(w http.ResponseWriter, err error) {
 	stackTrace := fmt.Sprintf("%s\n%s", err.Error(), debug.Stack())
@@ -36,6 +42,9 @@ func (config *configuration) addCommonData(data *templateData, r *http.Request) 
 	data.CurrentYear = time.Now().Year()
 
 	data.Flash = config.sessionManager.PopString(r, "flash")
+
+	data.AuthenticatedUser = config.authenticatedUser(r)
+	data.CSRFToken = nosurf.Token(r)
 
 	return data
 }

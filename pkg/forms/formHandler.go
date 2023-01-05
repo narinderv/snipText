@@ -3,9 +3,12 @@ package forms
 import (
 	"fmt"
 	"net/url"
+	"regexp"
 	"strings"
 	"unicode/utf8"
 )
+
+var EmailRX = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 
 // Structure to hold Form field data and errors
 type FormInfo struct {
@@ -47,6 +50,32 @@ func (form *FormInfo) MaxLength(field string, maxLen int) {
 
 	if utf8.RuneCountInString(value) > maxLen {
 		form.Errors.Add(field, fmt.Sprintf("This field is too long (max. length: %d)", maxLen))
+	}
+}
+
+// Check Max length
+func (form *FormInfo) MinLength(field string, minLen int) {
+	value := form.Get(field)
+
+	if value == "" {
+		return
+	}
+
+	if utf8.RuneCountInString(value) < minLen {
+		form.Errors.Add(field, fmt.Sprintf("This field is too short (min. length: %d)", minLen))
+	}
+}
+
+// Check Max length
+func (form *FormInfo) MatchPattern(field string, pattern *regexp.Regexp) {
+	value := form.Get(field)
+
+	if value == "" {
+		return
+	}
+
+	if !pattern.MatchString(value) {
+		form.Errors.Add(field, "This field is invalid")
 	}
 }
 

@@ -10,11 +10,13 @@ import (
 )
 
 type templateData struct {
-	CurrentYear int
-	Flash       string
-	Form        forms.FormInfo
-	Snip        *models.SnipText
-	AllSnips    []*models.SnipText
+	CurrentYear       int
+	Flash             string
+	CSRFToken         string
+	Form              forms.FormInfo
+	Snip              *models.SnipText
+	AllSnips          []*models.SnipText
+	AuthenticatedUser int
 }
 
 // Function to format the template data

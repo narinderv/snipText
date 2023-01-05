@@ -16,8 +16,22 @@
 <h1><a href='/'>Snip Text</a></h1>
 </header>
 <nav>
+<div>
 <a href='/'>Home</a>
+{{if .AuthenticatedUser}}
 <a href='/sniptext/create'>New Snip</a>
+{{end}}
+</div>
+<div>
+<a href='/user/signup'>Signup</a>
+<a href='/user/login'>Login</a>
+{{if .AuthenticatedUser}}
+<form action='/user/logout' method='POST'>
+<input type='hidden' name='csrf_token' value='{{.CSRFToken}}'>
+<button>Logout</button>
+</form>
+{{end}}
+</div>
 </nav>
 <section>
 {{with .Flash}}

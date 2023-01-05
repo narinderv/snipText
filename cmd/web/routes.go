@@ -16,12 +16,23 @@ func (config *configuration) routes() http.Handler {
 
 	// HTTP Handlers
 	// Enable the session Manager for the handlers
-	mux.Get("/", config.sessionManager.Enable(http.HandlerFunc(config.homePageHandler)))
-	mux.Get("/sniptext/create", config.sessionManager.Enable(http.HandlerFunc(config.createSnipForm)))
-	mux.Post("/sniptext/create", config.sessionManager.Enable(http.HandlerFunc(config.createSnip)))
+	mux.Get("/", config.sessionManager.Enable(noSurf(http.HandlerFunc(config.homePageHandler))))
+	mux.Get("/sniptext/create", config.sessionManager.Enable(config.requireAuthenticatedUser(noSurf(http.HandlerFunc(config.createSnipForm)))))
+	mux.Post("/sniptext/create", config.sessionManager.Enable(config.requireAuthenticatedUser(noSurf(http.HandlerFunc(config.createSnip)))))
 
 	// Semantic URLs will be used e.g., http://ip:port/base/query-string
-	mux.Get("/sniptext/:id", config.sessionManager.Enable(http.HandlerFunc(config.showSnip)))
+	mux.Get("/sniptext/:id", config.sessionManager.Enable(noSurf(http.HandlerFunc(config.showSnip))))
+
+	// SignUp
+	mux.Get("/user/signup", config.sessionManager.Enable(noSurf(http.HandlerFunc(config.signupForm))))
+	mux.Post("/user/signup", config.sessionManager.Enable(noSurf(http.HandlerFunc(config.signup))))
+
+	// Login
+	mux.Get("/user/login", config.sessionManager.Enable(noSurf(http.HandlerFunc(config.loginForm))))
+	mux.Post("/user/login", config.sessionManager.Enable(noSurf(http.HandlerFunc(config.login))))
+
+	// Logout
+	mux.Post("/user/logout", config.sessionManager.Enable(config.requireAuthenticatedUser(noSurf(http.HandlerFunc(config.logout)))))
 
 	// Static File server
 	fileServer := http.FileServer(http.Dir("./ui/static/"))

@@ -21,6 +21,7 @@ type configuration struct {
 	infoLog        *log.Logger
 	sessionManager *sessions.Session
 	snips          *mysql.SnipModel
+	users          *mysql.UserModel
 	templateCache  map[string]*template.Template
 }
 
@@ -44,6 +45,13 @@ func main() {
 
 	defer dbConnection.Close()
 
+	dbConnUser, err := connectToDatabase(*dbDetails)
+	if err != nil {
+		errorLog.Fatal(err)
+	}
+
+	defer dbConnUser.Close()
+
 	tmplCache, err := templateCache("./ui/html/")
 	if err != nil {
 		errorLog.Fatal(err)
@@ -58,6 +66,7 @@ func main() {
 		errorLog:       errorLog,
 		sessionManager: sessionManager,
 		snips:          &mysql.SnipModel{DB: dbConnection},
+		users:          &mysql.UserModel{DB: dbConnUser},
 		templateCache:  tmplCache,
 	}
 
