@@ -15,6 +15,10 @@ import (
 	"github.com/narinderv/snipText/pkg/models/mysql"
 )
 
+type contextKey string
+
+var contextKeyUser = contextKey("user")
+
 // Common for functions across the package
 type configuration struct {
 	errorLog       *log.Logger

@@ -8,10 +8,16 @@ import (
 	"time"
 
 	"github.com/justinas/nosurf"
+	"github.com/narinderv/snipText/pkg/models"
 )
 
-func (config *configuration) authenticatedUser(r *http.Request) int {
-	return config.sessionManager.GetInt(r, "userID")
+func (config *configuration) authenticatedUser(r *http.Request) *models.User {
+	user, ok := r.Context().Value(contextKeyUser).(*models.User)
+	if !ok {
+		return nil
+	}
+
+	return user
 }
 
 func (config *configuration) serverError(w http.ResponseWriter, err error) {

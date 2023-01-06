@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
 	"github.com/justinas/nosurf"
+	"github.com/narinderv/snipText/pkg/models"
 )
 
 func noSurf(nxtHandler http.Handler) http.Handler {
@@ -33,12 +35,40 @@ func (config *configuration) requireAuthenticatedUser(nxtHandler http.Handler) h
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		if config.authenticatedUser(r) == 0 {
+		if config.authenticatedUser(r) == nil {
 			http.Redirect(w, r, "/user/login", http.StatusFound)
 			return
 		}
 
 		nxtHandler.ServeHTTP(w, r)
+	})
+}
+
+func (config *configuration) authenticate(nxtHandler http.Handler) http.Handler {
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Check if the user ID already exists in the session or not
+		exists := config.sessionManager.Exists(r, "userID")
+		if !exists {
+			nxtHandler.ServeHTTP(w, r)
+			return
+		}
+
+		// If userID exists, check if this is a valid user
+		user, err := config.users.Get(config.sessionManager.GetInt(r, "userID"))
+		// User is not valid. Remove userID from session
+		if err == models.ErrNoRecord {
+			config.sessionManager.Remove(r, "userID")
+			nxtHandler.ServeHTTP(w, r)
+			return
+		} else if err != nil {
+			config.serverError(w, err)
+			return
+		}
+
+		// User is valid. Add the user details to the context
+		ctxt := context.WithValue(r.Context(), contextKeyUser, user)
+		nxtHandler.ServeHTTP(w, r.WithContext(ctxt))
 	})
 }
 

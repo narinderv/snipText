@@ -37,13 +37,13 @@ func (m *UserModel) Insert(userName string, email string, password string) error
 }
 
 func (m *UserModel) Get(id int) (*models.User, error) {
-	stmt := "SELECT id, user_name, email, hashed_password, created FROM users WHERE id= ?"
+	stmt := "SELECT id, user_name, email, created FROM users WHERE id= ?"
 
 	row := m.DB.QueryRow(stmt, id)
 
 	userInfo := &models.User{}
 
-	err := row.Scan(&userInfo.ID, &userInfo.UserName, &userInfo.Email, &userInfo.Password, &userInfo.Created)
+	err := row.Scan(&userInfo.ID, &userInfo.UserName, &userInfo.Email, &userInfo.Created)
 	if err == sql.ErrNoRows {
 		return nil, models.ErrNoRecord
 	} else if err != nil {

@@ -16,7 +16,7 @@ type templateData struct {
 	Form              forms.FormInfo
 	Snip              *models.SnipText
 	AllSnips          []*models.SnipText
-	AuthenticatedUser int
+	AuthenticatedUser *models.User
 }
 
 // Function to format the template data
