@@ -12,6 +12,7 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golangcollege/sessions"
+	"github.com/narinderv/snipText/pkg/models"
 	"github.com/narinderv/snipText/pkg/models/mysql"
 )
 
@@ -24,9 +25,17 @@ type configuration struct {
 	errorLog       *log.Logger
 	infoLog        *log.Logger
 	sessionManager *sessions.Session
-	snips          *mysql.SnipModel
-	users          *mysql.UserModel
 	templateCache  map[string]*template.Template
+	snips          interface {
+		Insert(string, string, string) (int, error)
+		Get(int) (*models.SnipText, error)
+		GetLatest() ([]*models.SnipText, error)
+	}
+	users interface {
+		Insert(string, string, string) error
+		Get(id int) (*models.User, error)
+		Authenticate(string, string) (int, error)
+	}
 }
 
 func main() {
@@ -69,9 +78,9 @@ func main() {
 		infoLog:        infoLog,
 		errorLog:       errorLog,
 		sessionManager: sessionManager,
+		templateCache:  tmplCache,
 		snips:          &mysql.SnipModel{DB: dbConnection},
 		users:          &mysql.UserModel{DB: dbConnUser},
-		templateCache:  tmplCache,
 	}
 
 	// TLS specific configurations

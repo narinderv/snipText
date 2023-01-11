@@ -21,7 +21,12 @@ type templateData struct {
 
 // Function to format the template data
 func formattedDate(inTime time.Time) string {
-	return inTime.Format("02 Jan 2006 15:04:05")
+
+	if inTime.IsZero() {
+		return ""
+	}
+
+	return inTime.UTC().Format("02 Jan 2006 15:04:05")
 }
 
 // Map of all the functions for the template

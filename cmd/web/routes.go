@@ -34,6 +34,9 @@ func (config *configuration) routes() http.Handler {
 	// Logout
 	mux.Post("/user/logout", config.sessionManager.Enable(config.authenticate(config.requireAuthenticatedUser(noSurf(http.HandlerFunc(config.logout))))))
 
+	// Ping Request
+	mux.Get("/ping", http.HandlerFunc(config.pingResponse))
+
 	// Static File server
 	fileServer := http.FileServer(http.Dir("./ui/static/"))
 

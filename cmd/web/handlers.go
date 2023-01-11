@@ -9,6 +9,10 @@ import (
 	"github.com/narinderv/snipText/pkg/models"
 )
 
+func (config *configuration) pingResponse(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("OK"))
+}
+
 func (config *configuration) homePageHandler(w http.ResponseWriter, r *http.Request) {
 
 	snips, err := config.snips.GetLatest()
